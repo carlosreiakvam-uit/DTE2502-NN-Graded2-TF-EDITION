@@ -36,7 +36,7 @@ if agent_type == 'DQN':
     sample_actions = False
     n_games_training = 8 * 16
     decay = 0.97
-    if supervised: #false
+    if supervised:  # false
         epsilon = 0.01
         agent.load_model(file_path='models/{:s}'.format(version))
         # agent.set_weights_trainable()
@@ -55,7 +55,7 @@ if agent_type == 'DQN':
 # play some games initially to fill the buffer
 if agent_type == 'DQN':
     # or load from an existing buffer (supervised)
-    if supervised: #false
+    if supervised:  # false
         try:
             agent.load_buffer(file_path='models/{:s}'.format(version), iteration=1)
         except FileNotFoundError:
@@ -80,17 +80,29 @@ env2 = SnakeNumpy(board_size=board_size, frames=frames,
                   max_time_limit=max_time_limit, games=games_eval,
                   frame_mode=True, obstacles=obstacles, version=version)
 
+# This is where the magic happens.
+# This is where the other methods of the DeepQLearningAgent has to function as intended.
 # training loop
 model_logs = {'iteration': [], 'reward_mean': [],
               'length_mean': [], 'games': [], 'loss': []}
 for index in tqdm(range(episodes)):
     if agent_type == 'DQN':
         # make small changes to the buffer and slowly train
+
+        # Here we play through the game with the current model
+        # in order to check for the loss (performance) of the model
+        # This should run as intended, no need to make changes here
         _, _, _ = play_game2(env, agent, n_actions, epsilon=epsilon,
                              n_games=n_games_training, record=True,
                              sample_actions=sample_actions, reward_type=reward_type,
                              frame_mode=True, total_frames=n_games_training,
                              stateful=True)
+
+        # IMPORTANT STEP
+        # First encounter with train_agent
+        # this provides, as indicated, the loss for a given random batch from the current buffer
+        # the current buffer consisting of the results from the previous running of the game
+        # This step also updates the model with new values
         loss = agent.train_agent(batch_size=64,
                                  num_games=n_games_training, reward_clip=True)
 
@@ -109,6 +121,8 @@ for index in tqdm(range(episodes)):
     #     agent.reset_buffer()
 
     # check performance every once in a while
+    # This actually plays the game in order to check for various data
+    # notice that loss is not calculated here, as it is already calculated above
     if (index + 1) % log_frequency == 0:
         current_rewards, current_lengths, current_games = \
             play_game2(env2, agent, n_actions, n_games=games_eval, epsilon=-1,

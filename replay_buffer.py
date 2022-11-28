@@ -263,17 +263,29 @@ class ReplayBufferNumpy:
             Binary indicators for legal moves in the next state, size * num actions
         """
         size = min(size, self._current_buffer_size)
-        # select random indexes indicating which examples to sample
+        # select size number of random indexes, indicating which examples to sample
         idx = np.random.choice(np.arange(self._current_buffer_size), \
                                     size=size, replace=replace)
 
+        # Getting states for all chosen indexes
         s = self._s[idx]
         # one hot encoding of actions
+
+        # getting actions for all chosen indexes
         a = np.zeros((idx.shape[0],self._n_actions))
+        # no idea what happens here but it's related to getting the correct actions
         a[np.arange(idx.shape[0]),self._a[idx]] = 1
+
+        # Getting the rewards for chosen indexes
         r = self._r[idx].reshape((-1, 1))
+
+        # getting next state for chosen indexes
         next_s = self._next_s[idx]
+
+        # getting done boolean for chosen indexes
         done = self._done[idx].reshape(-1, 1)
+
+        # getting legal moves for chosen indexes
         legal_moves = self._legal_moves[idx]
 
         return s, a, r, next_s, done, legal_moves

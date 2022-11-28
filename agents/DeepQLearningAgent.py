@@ -138,7 +138,7 @@ class DeepQLearningAgent(Agent):
 
     def update_target_net(self):
         if self._use_target_net: # true
-            self._target_net.set_weights(self._model.get_weights())
+            self._target_net.set_weights(self._model.get_weights()) # sets weights for _target_net from _model
 
     def compare_weights(self):
         for i in range(len(self._model.layers)):
